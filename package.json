@@ -1,0 +1,46 @@
+{
+  "name": "cli",
+  "version": "1.0.0",
+  "bin": "dist/index.js",
+  "main": "dist/index.js",
+  "author": "Janek Rahrt",
+  "license": "MIT",
+  "scripts": {
+    "start": "ts-node index.ts",
+    "prepare": "patch-package && tsc",
+    "build": "tsc && pkg ."
+  },
+  "pkg": {
+    "targets": [
+      "node16-linux-arm64",
+      "node16-linux-x64",
+      "node16-macos-arm64",
+      "node16-macos-x64",
+      "node16-win-arm64",
+      "node16-win-x64"
+    ],
+    "outputPath": "bin"
+  },
+  "devDependencies": {
+    "@types/lodash.chunk": "^4.2.7",
+    "@types/prompts": "^2.0.14",
+    "@types/semver": "^7.3.10",
+    "patch-package": "^6.4.7",
+    "pkg": "^5.8.0",
+    "postinstall-postinstall": "^2.1.0",
+    "ts-node": "^10.9.1",
+    "typescript": "^4.7.4"
+  },
+  "dependencies": {
+    "@types/lodash": "^4.14.182",
+    "commander": "^9.4.0",
+    "ethers": "^5.6.9",
+    "lodash": "^4.17.21",
+    "ora": "5",
+    "prompts": "^2.4.2",
+    "semver": "^7.3.7",
+    "starknet": "^4.1.0",
+    "starknet-390": "npm:starknet@3.9.0",
+    "yup": "^1.0.0-beta.4"
+  }
+}
