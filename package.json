@@ -8,7 +8,7 @@
   "scripts": {
     "start": "ts-node index.ts",
     "prepare": "patch-package && tsc",
-    "build": "tsc && pkg ."
+    "build": "tsc && pkg . -C GZip"
   },
   "pkg": {
     "targets": [
