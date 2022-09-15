@@ -10,3 +10,5 @@ It is simplest to download the latest release from the [releases page](https://g
 After downloading the binary matching your machine you can run it inside a terminal.
 
 If you have Node installed you can also clone this repo and run `yarn && yarn start` to run the CLI tool.
+
+**Use at your own risks**
