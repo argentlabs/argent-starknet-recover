@@ -14,6 +14,7 @@ import { selectAction } from "./actions";
 import { unionWith } from "lodash";
 import { oraLog } from "./oraLog";
 import { showTransferAll } from "./actions/transferAll/ui";
+import { extraAccount } from "./ui/extraAccount";
 
 program
   .name("Argent X CLI")
@@ -36,16 +37,21 @@ program.parse();
 (async () => {
   const spinner = ora();
 
-  const { accounts, network, defaultPrivateKey } = await getAccountsAndNetwork(
+  let { accounts, network, defaultPrivateKey } = await getAccountsAndNetwork(
     spinner
   );
+
+  spinner.succeed("Found " + accounts.length + " wallets");
+
+  if (accounts.length === 0) {
+    accounts = await extraAccount(network, defaultPrivateKey);
+  }
 
   const accountInfos = await getAccountInfos(
     accounts.map((x) => x.address),
     network,
     spinner
   );
-  spinner.succeed("Found " + accounts.length + " wallets");
 
   const accountWithSigner: Account[] = accounts.map((account, i) => ({
     ...account,
