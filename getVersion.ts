@@ -1,5 +1,5 @@
 import { Multicall } from "@argent/x-multicall";
-import { SequencerProvider } from "starknet";
+import { SequencerProvider, shortString } from "starknet";
 
 export async function getVersion(
   addresses: string[],
@@ -26,5 +26,5 @@ export async function getVersion(
     )
   ).flat();
 
-  return versions;
+  return versions.map((hex) => shortString.decodeShortString(hex));
 }
