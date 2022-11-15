@@ -14,7 +14,8 @@ import { selectAction } from "./actions";
 import { unionWith } from "lodash";
 import { oraLog } from "./oraLog";
 import { showTransferAll } from "./actions/transferAll/ui";
-import { extraAccount } from "./ui/extraAccount";
+import { askForExtraAccounts, extraAccount } from "./ui/extraAccount";
+import { equalSigner, getDefaultSigners } from "./genSigners";
 
 program
   .name("Argent X CLI")
@@ -37,14 +38,20 @@ program.parse();
 (async () => {
   const spinner = ora();
 
-  let { accounts, network, defaultPrivateKey } = await getAccountsAndNetwork(
+  let { accounts, network, privateKey, seed } = await getAccountsAndNetwork(
     spinner
   );
 
   spinner.succeed("Found " + accounts.length + " wallets");
 
   if (accounts.length === 0) {
-    accounts = await extraAccount(network, defaultPrivateKey);
+    accounts = await extraAccount(network, privateKey);
+  } else if (await askForExtraAccounts()) {
+    accounts = unionWith(
+      accounts,
+      await extraAccount(network, privateKey),
+      (a, b) => a.address === b.address
+    );
   }
 
   const accountInfos = await getAccountInfos(
@@ -57,6 +64,29 @@ program.parse();
     ...account,
     ...accountInfos[i],
   }));
+
+  // find missing signers
+  if (seed && accountWithSigner.some((x) => !x.privateKey)) {
+    spinner.start("Trying to find missing private keys");
+    const defaultSigners = getDefaultSigners(seed);
+    accountWithSigner
+      .filter((x) => !x.privateKey)
+      .forEach((x) => {
+        const signer = defaultSigners.find((y) =>
+          equalSigner(x.signer, y.signer)
+        );
+        if (signer) {
+          x.privateKey = signer.privateKey;
+        }
+      });
+    if (accountWithSigner.some((x) => !x.privateKey)) {
+      spinner.warn(
+        "Could not find all private keys. Continuing with missing private keys"
+      );
+    } else {
+      spinner.succeed("Found all private keys");
+    }
+  }
 
   const filteredAccountWithSigner = await pickAccounts(
     accountWithSigner,

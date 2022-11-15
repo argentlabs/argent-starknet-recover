@@ -9,7 +9,8 @@ export const getAccountInfos = async (
   networkId: "mainnet-alpha" | "goerli-alpha",
   oraProgress?: ora.Ora
 ) => {
-  const progress = oraProgress ?? ora("Retrieving signers").start();
+  const progress = oraProgress ?? ora("Retrieving signers");
+  progress.start();
   progress.text = "Retrieving signers";
   const signer = await getSigners(addresses, networkId);
   progress.text = "Retrieving versions";
@@ -18,9 +19,8 @@ export const getAccountInfos = async (
   const implementations = await getImplementation(addresses, networkId);
   progress.text = "Retrieving balances";
   const balances = await getBalances(addresses, networkId);
-  if (!oraProgress) {
-    progress.succeed();
-  }
+  progress.succeed();
+
   return addresses.map((address, i) => ({
     address,
     signer: signer[i],

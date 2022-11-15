@@ -126,7 +126,7 @@ export async function getAccountsByPrivateKey(
   const accounts: {
     address: string;
     networkId: string;
-    privateKey: string;
+    privateKey?: string;
   }[] = [];
 
   const promises = proxyClassHashAndAccountClassHash2DMap.map(

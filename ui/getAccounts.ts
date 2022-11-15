@@ -62,7 +62,7 @@ export const getAccountsAndNetwork = async (ora: Ora) => {
     return {
       accounts,
       network,
-      defaultPrivateKey: Wallet.fromMnemonic(seed).privateKey,
+      seed,
     };
   } else if (seedOrPrivateKey === "privateKey") {
     const { privateKey }: { privateKey: string } = await prompts(
@@ -95,7 +95,7 @@ export const getAccountsAndNetwork = async (ora: Ora) => {
 
     ora.start("Discovering Accounts");
     const accounts = await getAccountsByPrivateKey(privateKey, network);
-    return { accounts, network, defaultPrivateKey: privateKey };
+    return { accounts, network, privateKey };
   } else {
     throw new Error("Invalid seedOrPrivateKey");
   }

@@ -7,7 +7,7 @@ export interface BaseAccount {
   networkId: string;
   signer: string;
   version: string;
-  privateKey: string;
+  privateKey?: string;
   derivationPath?: string;
 }
 
