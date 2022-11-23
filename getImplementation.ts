@@ -8,16 +8,24 @@ export async function getImplementation(
   const provider = new SequencerProvider({ network });
   const multicallProvider = new Multicall(provider);
 
-  const implementations = (
-    await Promise.all(
-      addresses.map((address) =>
-        multicallProvider.call({
-          contractAddress: address,
-          entrypoint: "get_implementation",
-        })
-      )
+  const implementationAnswers = await Promise.allSettled(
+    addresses.map((address) =>
+      multicallProvider.call({
+        contractAddress: address,
+        entrypoint: "get_implementation",
+      })
     )
-  ).flat();
+  );
+
+  const implementations = implementationAnswers
+    .map((answer) => {
+      if (answer.status === "fulfilled") {
+        return answer.value;
+      } else {
+        return null;
+      }
+    })
+    .flat();
 
   return implementations;
 }

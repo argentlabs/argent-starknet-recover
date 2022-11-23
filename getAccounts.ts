@@ -40,14 +40,18 @@ async function getAccountByKeyPair(
     0
   );
 
-  const code = await provider.getCode(address);
+  try {
+    const code = await provider.getCode(address);
 
-  if (code.bytecode.length > 0) {
-    return {
-      address,
-      networkId: network,
-      privateKey: number.toHex(number.toBN(keyPair.getPrivate().toString())),
-    };
+    if (code.bytecode.length > 0) {
+      return {
+        address,
+        networkId: network,
+        privateKey: number.toHex(number.toBN(keyPair.getPrivate().toString())),
+      };
+    }
+  } catch (e) {
+    console.error(e);
   }
 }
 

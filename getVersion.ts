@@ -8,23 +8,33 @@ export async function getVersion(
   const provider = new SequencerProvider({ network });
   const multicallContract = new Multicall(provider);
 
-  const versions = (
-    await Promise.all(
-      addresses.map((address) =>
-        multicallContract
-          .call({
+  const versionAnswers = await Promise.allSettled(
+    addresses.map((address) =>
+      multicallContract
+        .call({
+          contractAddress: address,
+          entrypoint: "getVersion",
+        })
+        .catch(() =>
+          multicallContract.call({
             contractAddress: address,
-            entrypoint: "getVersion",
+            entrypoint: "get_version",
           })
-          .catch(() =>
-            multicallContract.call({
-              contractAddress: address,
-              entrypoint: "get_version",
-            })
-          )
-      )
+        )
     )
-  ).flat();
+  );
 
-  return versions.map((hex) => shortString.decodeShortString(hex));
+  const versions = versionAnswers
+    .map((answer) => {
+      if (answer.status === "fulfilled") {
+        return answer.value;
+      } else {
+        return null;
+      }
+    })
+    .flat();
+
+  return versions.map((hex) =>
+    hex ? shortString.decodeShortString(hex) : null
+  );
 }

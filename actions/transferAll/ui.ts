@@ -30,9 +30,15 @@ export async function showTransferAll(accounts: Account[]) {
 
   const spinner = ora("Transferring all tokens").start();
 
-  await Promise.all(
+  const transferResults = await Promise.allSettled(
     accounts.map(async (acc) => transferAll(acc, toAddress, spinner))
   );
+
+  transferResults.forEach((result) => {
+    if (result.status === "rejected") {
+      spinner.fail(result.reason);
+    }
+  });
 
   spinner.succeed("All tokens transferred");
 }

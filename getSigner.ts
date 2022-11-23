@@ -8,23 +8,31 @@ export async function getSigners(
   const provider = new SequencerProvider({ network });
   const multicallProvider = new Multicall(provider);
 
-  const signers = (
-    await Promise.all(
-      addresses.map((address) =>
-        multicallProvider
-          .call({
+  const signerAnswers = await Promise.allSettled(
+    addresses.map((address) =>
+      multicallProvider
+        .call({
+          contractAddress: address,
+          entrypoint: "getSigner",
+        })
+        .catch(() =>
+          multicallProvider.call({
             contractAddress: address,
-            entrypoint: "getSigner",
+            entrypoint: "get_signer",
           })
-          .catch(() =>
-            multicallProvider.call({
-              contractAddress: address,
-              entrypoint: "get_signer",
-            })
-          )
-      )
+        )
     )
-  ).flat();
+  );
+
+  const signers = signerAnswers
+    .map((answer) => {
+      if (answer.status === "fulfilled") {
+        return answer.value;
+      } else {
+        return null;
+      }
+    })
+    .flat();
 
   return signers;
 }

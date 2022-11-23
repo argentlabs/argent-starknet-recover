@@ -16,7 +16,7 @@ export async function getBalances(
     addresses.map((address) => ({ address, token }))
   );
 
-  const results = await Promise.all(
+  const results = await Promise.allSettled(
     addressesTokensCombinations.map(({ address, token }) =>
       multicallProvider.call({
         contractAddress: token,
@@ -24,23 +24,36 @@ export async function getBalances(
         calldata: [address],
       })
     )
+  ).then((results) =>
+    results.map((result) => {
+      if (result.status === "fulfilled") {
+        return result.value;
+      } else {
+        return null;
+      }
+    })
   );
 
   if (addressesTokensCombinations.length !== results.length) {
     throw new Error("Something went wrong");
   }
 
-  return addressesTokensCombinations.map((addressToken, index) => ({
-    address: addressToken.address,
-    token: addressToken.token,
-    balance: formatTokenBalance(
-      uint256
-        .uint256ToBN({
-          low: encode.addHexPrefix(results[index][0]),
-          high: encode.addHexPrefix(results[index][1]),
-        })
-        .toString(),
-      tokens.find((x) => x.address === addressToken.token)!.decimals
-    ),
-  }));
+  return addressesTokensCombinations.map((addressToken, index) => {
+    const balance = results[index];
+    return {
+      address: addressToken.address,
+      token: addressToken.token,
+      balance: formatTokenBalance(
+        balance
+          ? uint256
+              .uint256ToBN({
+                low: encode.addHexPrefix(balance[0]),
+                high: encode.addHexPrefix(balance[1]),
+              })
+              .toString()
+          : "0",
+        tokens.find((x) => x.address === addressToken.token)!.decimals
+      ),
+    };
+  });
 }
