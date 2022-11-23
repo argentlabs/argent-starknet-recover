@@ -6,7 +6,7 @@ export async function getVersion(
   network: "mainnet-alpha" | "goerli-alpha"
 ) {
   const provider = new SequencerProvider({ network });
-  const multicallContract = new Multicall(provider);
+  const multicallContract = new Multicall(provider as any);
 
   const versionAnswers = await Promise.allSettled(
     addresses.map((address) =>

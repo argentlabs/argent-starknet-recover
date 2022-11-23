@@ -36,7 +36,7 @@ export async function showTransferAll(accounts: Account[]) {
 
   transferResults.forEach((result) => {
     if (result.status === "rejected") {
-      spinner.fail(result.reason);
+      spinner.fail(result.reason?.toString());
     }
   });
 

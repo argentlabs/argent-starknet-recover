@@ -10,7 +10,7 @@ export async function getBalances(
   const tokens = TOKENS.filter((token) => token.network === network);
   const tokenAddresses = tokens.map((token) => token.address);
   const provider = new SequencerProvider({ network });
-  const multicallProvider = new Multicall(provider);
+  const multicallProvider = new Multicall(provider as any);
 
   const addressesTokensCombinations = tokenAddresses.flatMap((token) =>
     addresses.map((address) => ({ address, token }))

@@ -40,7 +40,8 @@
     "ora": "5",
     "prompts": "^2.4.2",
     "semver": "^7.3.7",
-    "starknet": "^4.1.0",
+    "starknet-490": "npm:starknet@4.9.0",
+    "starknet": "4.1.0",
     "starknet-390": "npm:starknet@3.9.0",
     "yup": "^1.0.0-beta.4"
   }

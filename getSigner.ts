@@ -6,7 +6,7 @@ export async function getSigners(
   network: "mainnet-alpha" | "goerli-alpha"
 ) {
   const provider = new SequencerProvider({ network });
-  const multicallProvider = new Multicall(provider);
+  const multicallProvider = new Multicall(provider as any);
 
   const signerAnswers = await Promise.allSettled(
     addresses.map((address) =>

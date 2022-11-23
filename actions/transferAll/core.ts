@@ -11,6 +11,7 @@ import { Account } from "../../ui/pickAccounts";
 import TOKENS from "../../default-tokens.json";
 import { Ora } from "ora";
 import { oraLog } from "../../oraLog";
+import { getNonce } from "./getNonce";
 
 export async function transferAll(acc: Account, newAddress: string, ora: Ora) {
   const { privateKey } = acc;
@@ -52,7 +53,8 @@ export async function transferAll(acc: Account, newAddress: string, ora: Ora) {
     });
 
   if (calls.length) {
-    const { suggestedMaxFee } = await account.estimateFee(calls);
+    const nonce = await getNonce(acc.address, acc.networkId); // use this to get the nonce, as this covers old and new way of getting nonce
+    const { suggestedMaxFee } = await account.estimateFee(calls, { nonce });
 
     const callsWithFee = calls.map((c) => {
       const tokenDetails = tokens.find((t) => t.symbol === "ETH");
