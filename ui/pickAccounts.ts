@@ -5,15 +5,15 @@ import { formatTokenBalanceShort } from "../tokenFormatting";
 export interface BaseAccount {
   address: string;
   networkId: string;
-  signer: string;
-  version: string;
+  signer: string | null;
+  version: string | null;
   privateKey?: string;
   derivationPath?: string;
 }
 
 export interface Account extends BaseAccount {
   balances: { [token: string]: string };
-  implementation: string;
+  implementation: string | null;
 }
 
 interface PickAccountsOptions {
@@ -46,11 +46,12 @@ export async function pickAccounts(
             formatTokenBalanceShort(account.balances, network)
           ).filter(([, balance]) => balance !== "0.0");
           return {
-            title: `${truncateAddress(account.address)} (Signer: ${truncateHex(
-              account.signer
-            )}, Implementation: ${truncateAddress(account.implementation)}${
-              balances.length ? ", " : ""
-            }${balances
+            title: `${truncateAddress(account.address)} (${
+              account.signer && `Signer: ${truncateHex(account.signer)}, `
+            }${
+              account.implementation &&
+              `Implementation: ${truncateAddress(account.implementation)}`
+            }${balances.length ? ", " : ""}${balances
               .map(([token, balance]) => `${balance} ${token}`)
               .join(", ")})`,
             value: account.address,

@@ -72,8 +72,8 @@ program.parse();
     accountWithSigner
       .filter((x) => !x.privateKey)
       .forEach((x) => {
-        const signer = defaultSigners.find((y) =>
-          equalSigner(x.signer, y.signer)
+        const signer = defaultSigners.find(
+          (y) => x.signer && equalSigner(x.signer, y.signer)
         );
         if (signer) {
           x.privateKey = signer.privateKey;
