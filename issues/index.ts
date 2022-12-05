@@ -16,39 +16,6 @@ export async function detectAccountIssues(
   return { oldHashAlgo };
 }
 
-export async function selectAccountIssuesToFix(
-  issues: IssuesMap
-): Promise<IssuesMap> {
-  const allIssues = uniqBy(
-    (Object.entries(issues) as [string, string[]][]).flatMap(([key, value]) =>
-      value.map((x) => [key, x] as const)
-    ),
-    "1"
-  );
-  const { issuesToFix }: { issuesToFix: [keyof IssuesMap, string][] } =
-    await prompts(
-      {
-        type: "multiselect",
-        name: "issuesToFix",
-        message: "Choose issues to fix",
-        choices: allIssues.map(([issue, address]) => ({
-          title: `${issue}: ${truncateAddress(address)}`,
-          value: [issue, address],
-          selected: true,
-        })),
-      },
-      { onCancel: () => process.exit(1) }
-    );
-
-  return issuesToFix.reduce(
-    (acc, [issue, address]) => ({
-      ...acc,
-      [issue]: [...(acc[issue] ?? []), address],
-    }),
-    {} as IssuesMap
-  );
-}
-
 export async function fixAccountIssues(
   accounts: Account[],
   network: "mainnet-alpha" | "goerli-alpha",

@@ -4,15 +4,8 @@ import ora from "ora";
 import { Account, pickAccounts } from "./ui/pickAccounts";
 import { getAccountInfos } from "./getAccountsInfo";
 import { getAccountsAndNetwork } from "./ui/getAccounts";
-import {
-  detectAccountIssues,
-  fixAccountIssues,
-  selectAccountIssuesToFix,
-} from "./issues";
 import { display } from "./displayAccounts";
-import { selectAction } from "./actions";
 import { unionWith } from "lodash";
-import { oraLog } from "./oraLog";
 import { showTransferAll } from "./actions/transferAll/ui";
 import { askForExtraAccounts, extraAccount } from "./ui/extraAccount";
 import { equalSigner, getDefaultSigners } from "./genSigners";
@@ -93,37 +86,9 @@ program.parse();
     network
   );
 
-  const allAccounts = unionWith(
-    accountWithSigner,
-    filteredAccountWithSigner,
-    (a, b) => a.address === b.address
-  );
-
   display(filteredAccountWithSigner);
 
-  const issues = await detectAccountIssues(filteredAccountWithSigner);
-
-  const issuesDetectedCount = Object.values(issues).reduce(
-    (acc, curr) => acc + curr.length,
-    0
-  );
-
-  const selectedAction = await selectAction(issuesDetectedCount);
-
-  switch (selectedAction) {
-    case "fixIssues": {
-      if (issuesDetectedCount) {
-        const fixIssues = await selectAccountIssuesToFix(issues);
-
-        return await fixAccountIssues(allAccounts, network, fixIssues);
-      }
-    }
-    case "transferAll": {
-      return await showTransferAll(filteredAccountWithSigner);
-    }
-    default:
-      process.exit(0);
-  }
+  await showTransferAll(filteredAccountWithSigner, network);
 })().catch((e) => {
   console.error("An error occured", e);
   process.exit(1);

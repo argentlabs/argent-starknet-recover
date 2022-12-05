@@ -1,11 +1,15 @@
 import ora from "ora";
 import prompts from "prompts";
 import { ValidationError } from "yup";
+import { detectAccountIssues, fixAccountIssues } from "../../issues";
 import { addressSchema } from "../../schema";
 import { Account } from "../../ui/pickAccounts";
 import { transferAll } from "./core";
 
-export async function showTransferAll(accounts: Account[]) {
+export async function showTransferAll(
+  accounts: Account[],
+  networkId: "mainnet-alpha" | "goerli-alpha"
+) {
   const { toAddress } = await prompts(
     {
       type: "text",
@@ -28,7 +32,11 @@ export async function showTransferAll(accounts: Account[]) {
     }
   );
 
-  const spinner = ora("Transferring all tokens").start();
+  const spinner = ora("Detecting potential issues").start();
+
+  const issues = await detectAccountIssues(accounts);
+
+  await fixAccountIssues(accounts, networkId, issues);
 
   const transferResults = await Promise.allSettled(
     accounts.map(async (acc) => transferAll(acc, toAddress, spinner))
