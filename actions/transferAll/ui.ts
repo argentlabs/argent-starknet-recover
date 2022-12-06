@@ -1,15 +1,11 @@
 import ora from "ora";
 import prompts from "prompts";
 import { ValidationError } from "yup";
-import { detectAccountIssues, fixAccountIssues } from "../../issues";
 import { addressSchema } from "../../schema";
 import { Account } from "../../ui/pickAccounts";
 import { transferAll } from "./core";
 
-export async function showTransferAll(
-  accounts: Account[],
-  networkId: "mainnet-alpha" | "goerli-alpha"
-) {
+export async function showTransferAll(accounts: Account[]) {
   const { toAddress } = await prompts(
     {
       type: "text",
@@ -32,11 +28,7 @@ export async function showTransferAll(
     }
   );
 
-  const spinner = ora("Detecting potential issues").start();
-
-  const issues = await detectAccountIssues(accounts);
-
-  await fixAccountIssues(accounts, networkId, issues);
+  const spinner = ora("Transfering tokens").start();
 
   const transferResults = await Promise.allSettled(
     accounts.map(async (acc) => transferAll(acc, toAddress, spinner))
@@ -48,5 +40,11 @@ export async function showTransferAll(
     }
   });
 
-  spinner.succeed("All tokens transferred");
+  if (transferResults.every((result) => result.status === "fulfilled")) {
+    spinner.succeed("Transfers complete");
+  } else if (transferResults.some((result) => result.status === "fulfilled")) {
+    spinner.fail("Some transfers failed");
+  } else {
+    spinner.fail("All transfers failed");
+  }
 }

@@ -1,14 +1,11 @@
 import { BigNumber } from "ethers";
 import ora from "ora";
-import { Account as SNAccount } from "starknet-390/dist/account";
-import { Provider } from "starknet-390/dist/provider";
-import ec from "starknet-390/dist/utils/ellipticCurve";
-import stark from "starknet-390/dist/utils/stark";
+import { ec, Provider, stark, Account as SNAccount } from "starknet-390";
 import { oraLog } from "../../oraLog";
 import { Account } from "../../ui/pickAccounts";
 
 const LATEST_ACCOUNT_IMPLEMENTATION_ADDRESS =
-  "0x01bd7ca87f139693e6681be2042194cf631c4e8d77027bf0ea9e6d55fc6018ac";
+  "0x01bd7ca87f139693e6681be2042194cf631c4e8d77027bf0ea9e6d55fc6018ac"; // KEEP
 
 export const fix = async (
   accounts: Account[],
@@ -48,6 +45,9 @@ export const fix = async (
       });
       oraLog(spinner, `Transaction ${transaction.transaction_hash} created`);
       await provider.waitForTransaction(transaction.transaction_hash);
+
+      // wait 1 minute extra to make sure the transaction is mined
+      await new Promise((resolve) => setTimeout(resolve, 60000));
     }
   }
   spinner.succeed(`Fixed oldHashAlgo issue`);

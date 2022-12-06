@@ -11,23 +11,15 @@ import { Account } from "../../ui/pickAccounts";
 import TOKENS from "../../default-tokens.json";
 import { Ora } from "ora";
 import { oraLog } from "../../oraLog";
-import { getNonce } from "./getNonce";
+import { estimateFee, execute } from "../../execute";
 
 export async function transferAll(acc: Account, newAddress: string, ora: Ora) {
   const { privateKey } = acc;
   if (!privateKey) {
     throw new Error("No private key for account to credit");
   }
-  const keyPair = ec.getKeyPair(privateKey);
-  const starkKey = ec.getStarkKey(keyPair);
-  if (!BigNumber.from(acc.signer).eq(starkKey)) {
-    throw new Error(
-      "Account cant be controlled with the selected private key or seed"
-    );
-  }
 
   const provider = new SequencerProvider({ network: acc.networkId as any });
-  const account = new SNAccount(provider, acc.address.toLowerCase(), keyPair);
   const tokens = TOKENS.filter((t) => t.network === acc.networkId);
   const calls = Object.entries(acc.balances)
     .filter(([, balance]) => utils.parseEther(balance).gt(0))
@@ -53,8 +45,7 @@ export async function transferAll(acc: Account, newAddress: string, ora: Ora) {
     });
 
   if (calls.length) {
-    const nonce = await getNonce(acc.address, acc.networkId); // use this to get the nonce, as this covers old and new way of getting nonce
-    const { suggestedMaxFee } = await account.estimateFee(calls, { nonce });
+    const { suggestedMaxFee } = await estimateFee(acc, calls);
 
     const callsWithFee = calls.map((c) => {
       const tokenDetails = tokens.find((t) => t.symbol === "ETH");
@@ -82,9 +73,7 @@ export async function transferAll(acc: Account, newAddress: string, ora: Ora) {
     });
 
     // execute with suggested max fee substracted from a potential eth transfer
-    const transaction = await account.execute(callsWithFee, undefined, {
-      maxFee: suggestedMaxFee,
-    });
+    const transaction = await execute(acc, callsWithFee);
 
     oraLog(ora, `Transaction ${transaction.transaction_hash} created`);
 

@@ -18,13 +18,11 @@ export const askForExtraAccounts = async () => {
 };
 
 export async function extraAccount(
-  network: "mainnet-alpha" | "goerli-alpha",
-  privateKey?: string
+  network: "mainnet-alpha" | "goerli-alpha"
 ): Promise<
   {
     address: string;
     networkId: string;
-    privateKey?: string;
   }[]
 > {
   const { extraWalletAddresses: input }: { extraWalletAddresses: string } =
@@ -72,11 +70,9 @@ export async function extraAccount(
     ): {
       address: string;
       networkId: string;
-      privateKey?: string;
     } => ({
       address,
       networkId: network,
-      privateKey,
     })
   );
 }

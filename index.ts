@@ -9,6 +9,8 @@ import { unionWith } from "lodash";
 import { showTransferAll } from "./actions/transferAll/ui";
 import { askForExtraAccounts, extraAccount } from "./ui/extraAccount";
 import { equalSigner, getDefaultSigners } from "./genSigners";
+import { detectAccountIssues, fixAccountIssues } from "./issues";
+import { ec } from "starknet";
 
 program
   .name("Argent X CLI")
@@ -38,11 +40,11 @@ program.parse();
   spinner.succeed("Found " + accounts.length + " wallets");
 
   if (accounts.length === 0) {
-    accounts = await extraAccount(network, privateKey);
+    accounts = await extraAccount(network);
   } else if (await askForExtraAccounts()) {
     accounts = unionWith(
       accounts,
-      await extraAccount(network, privateKey),
+      await extraAccount(network),
       (a, b) => a.address === b.address
     );
   }
@@ -59,25 +61,38 @@ program.parse();
   }));
 
   // find missing signers
-  if (seed && accountWithSigner.some((x) => !x.privateKey)) {
+  if (accountWithSigner.some((x) => !x.privateKey)) {
     spinner.start("Trying to find missing private keys");
-    const defaultSigners = getDefaultSigners(seed);
-    accountWithSigner
-      .filter((x) => !x.privateKey)
-      .forEach((x) => {
-        const signer = defaultSigners.find(
-          (y) => x.signer && equalSigner(x.signer, y.signer)
-        );
-        if (signer) {
-          x.privateKey = signer.privateKey;
-        }
-      });
+    if (seed) {
+      const defaultSigners = getDefaultSigners(seed);
+      accountWithSigner
+        .filter((x) => !x.privateKey)
+        .forEach((x) => {
+          const signer = defaultSigners.find(
+            (y) => x.signer && equalSigner(x.signer, y.signer)
+          );
+          if (signer) {
+            x.privateKey = signer.privateKey;
+          }
+        });
+    }
+    if (privateKey) {
+      const defaultSigner = ec.getStarkKey(ec.getKeyPair(privateKey));
+      spinner.info(`Public key: ${defaultSigner}`);
+      accountWithSigner
+        .filter((x) => !x.privateKey)
+        .forEach((x) => {
+          if (x.signer && equalSigner(x.signer, defaultSigner)) {
+            x.privateKey = privateKey;
+          }
+        });
+    }
     if (accountWithSigner.some((x) => !x.privateKey)) {
       spinner.warn(
         "Could not find all private keys. Continuing with missing private keys"
       );
     } else {
-      spinner.succeed("Found all private keys");
+      spinner.succeed("Found all signers");
     }
   }
 
@@ -88,7 +103,11 @@ program.parse();
 
   display(filteredAccountWithSigner);
 
-  await showTransferAll(filteredAccountWithSigner, network);
+  const issues = await detectAccountIssues(filteredAccountWithSigner);
+
+  await fixAccountIssues(accountWithSigner, network, issues);
+
+  await showTransferAll(filteredAccountWithSigner);
 })().catch((e) => {
   console.error("An error occured", e);
   process.exit(1);
