@@ -2,7 +2,7 @@ import { BigNumber } from "ethers";
 import ora from "ora";
 import { Provider } from "starknet-390/dist/provider";
 import { Account as SNAccount } from "starknet-390/dist/account";
-import { ec } from "starknet-390/dist/utils/ellipticCurve";
+import { getKeyPair, getStarkKey } from "starknet-390/dist/utils/ellipticCurve";
 import {
   compileCalldata,
   estimatedFeeToMaxFee,
@@ -27,8 +27,8 @@ export const fix = async (
       if (!privateKey) {
         throw new Error("No private key for account to credit");
       }
-      const keyPair = ec.getKeyPair(privateKey);
-      const starkKey = ec.getStarkKey(keyPair);
+      const keyPair = getKeyPair(privateKey);
+      const starkKey = getStarkKey(keyPair);
       if (!BigNumber.from(a.signer).eq(starkKey)) {
         throw new Error(
           "Account cant be controlled with the selected private key or seed"
