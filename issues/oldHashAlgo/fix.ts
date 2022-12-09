@@ -1,6 +1,12 @@
 import { BigNumber } from "ethers";
 import ora from "ora";
-import { ec, Provider, stark, Account as SNAccount } from "starknet-390";
+import { Provider } from "starknet-390/dist/provider";
+import { Account as SNAccount } from "starknet-390/dist/account";
+import { ec } from "starknet-390/dist/utils/ellipticCurve";
+import {
+  compileCalldata,
+  estimatedFeeToMaxFee,
+} from "starknet-390/dist/utils/stark";
 import { oraLog } from "../../oraLog";
 import { Account } from "../../ui/pickAccounts";
 
@@ -34,14 +40,14 @@ export const fix = async (
       const call = {
         contractAddress: a.address,
         entrypoint: "upgrade",
-        calldata: stark.compileCalldata({
+        calldata: compileCalldata({
           implementation: LATEST_ACCOUNT_IMPLEMENTATION_ADDRESS,
         }),
       };
 
       const x: any = await account.estimateFee(call); // overwrite type as API has changed
       const transaction = await account.execute(call, undefined, {
-        maxFee: stark.estimatedFeeToMaxFee(x.overall_fee, 2), // 200% overhead (300% in total) as maxFee, as the provider estimate does not account for the costs added by the account abstraction
+        maxFee: estimatedFeeToMaxFee(x.overall_fee, 2), // 200% overhead (300% in total) as maxFee, as the provider estimate does not account for the costs added by the account abstraction
       });
       oraLog(spinner, `Transaction ${transaction.transaction_hash} created`);
       await provider.waitForTransaction(transaction.transaction_hash);
