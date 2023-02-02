@@ -1,14 +1,18 @@
 import { Wallet } from "ethers";
 import { ec, hash, number, SequencerProvider, stark } from "starknet";
+import { getBalances } from "./getTokenBalance";
 import { getPathForIndex, getStarkPair } from "./keyDerivation";
 
 const CHECK_OFFSET = 10;
 
-const PROXY_CONTRACT_CLASS_HASHES = [
+export const PROXY_CONTRACT_CLASS_HASHES = [
   "0x25ec026985a3bf9d0cc1fe17326b245dfdc3ff89b8fde106542a3ea56c5a918",
 ];
 const ARGENT_ACCOUNT_CONTRACT_CLASS_HASHES = [
+  "0x1a7820094feaf82d53f53f214b81292d717e7bb9a92bb2488092cd306f3993f",
+  "0x7e28fb0161d10d1cf7fe1f13e7ca57bce062731a3bd04494dfd2d0412699727",
   "0x3e327de1c40540b98d05cbcb13552008e36f0ec8d61d46956d2f9752c294328",
+  "0x33434ad846cdd5f23eb73ff09fe6fddd568284a0fb7d1be20ee482f044dabe2",
 ];
 
 export const BASE_DERIVATION_PATHS = [
@@ -41,12 +45,24 @@ async function getAccountByKeyPair(
   );
 
   try {
+    const ethBalance = await getBalances([address], network, ["ETH"]);
+
+    if (ethBalance[0].rawBalance !== "0") {
+      return {
+        address,
+        deployImplementation: accountClassHash,
+        networkId: network,
+        privateKey: number.toHex(number.toBN(keyPair.getPrivate().toString())),
+      };
+    }
+
     const code = await provider.getCode(address);
 
     if (code.bytecode.length > 0) {
       return {
         address,
         networkId: network,
+        deployImplementation: accountClassHash,
         privateKey: number.toHex(number.toBN(keyPair.getPrivate().toString())),
       };
     }
@@ -72,6 +88,7 @@ export async function getAccountsBySeedPhrase(
 
   const accounts: {
     address: string;
+    deployImplementation?: string;
     networkId: string;
     derivationPath: string;
     privateKey: string;
@@ -129,6 +146,7 @@ export async function getAccountsByPrivateKey(
 
   const accounts: {
     address: string;
+    deployImplementation?: string;
     networkId: string;
     privateKey?: string;
   }[] = [];

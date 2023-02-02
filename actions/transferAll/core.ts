@@ -54,7 +54,7 @@ export async function transferAll(acc: Account, newAddress: string, ora: Ora) {
         return {
           ...c,
           calldata: compileCalldata({
-            to: newAddress,
+            to: newAddress.toLowerCase(),
             value: {
               type: "struct",
               ...uint256.bnToUint256(

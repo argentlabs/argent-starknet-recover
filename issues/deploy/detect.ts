@@ -1,8 +1,10 @@
-import { BigNumber } from "ethers";
 import { Account } from "../../ui/pickAccounts";
 
 export const detect = async (accounts: Account[]): Promise<string[]> => {
   return accounts
-    .filter(({ signer }) => signer && BigNumber.from(signer).eq(0))
+    .filter(
+      ({ signer, implementation, version }) =>
+        signer === null && implementation === null && version === null
+    )
     .map(({ address }) => address);
 };

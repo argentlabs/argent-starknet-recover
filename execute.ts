@@ -47,11 +47,9 @@ export async function execute(account: Account, call: Call[] | Call) {
     const a = new OldAccount(oldProvider, lowerCaseAddress, keyPair);
     return await a.execute(calls);
   } catch (e) {
-    console.warn("old failed", e);
     const newProvider = new NewProvider({ network: account.networkId as any });
     const a = new NewAccount(newProvider, lowerCaseAddress, keyPair);
     return a.execute(calls).catch((e) => {
-      console.warn("new failed", e);
       throw e;
     });
   }

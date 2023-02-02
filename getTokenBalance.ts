@@ -5,9 +5,18 @@ import { Multicall } from "@argent/x-multicall";
 
 export async function getBalances(
   addresses: string[],
-  network: "mainnet-alpha" | "goerli-alpha"
+  network: "mainnet-alpha" | "goerli-alpha",
+  tokenWhiteList: string[] = []
 ) {
-  const tokens = TOKENS.filter((token) => token.network === network);
+  const tokens = TOKENS.filter((token) => token.network === network).filter(
+    (token) => {
+      if (tokenWhiteList.length) {
+        return tokenWhiteList.includes(token.symbol);
+      } else {
+        return true;
+      }
+    }
+  );
   const tokenAddresses = tokens.map((token) => token.address);
   const provider = new SequencerProvider({ network });
   const multicallProvider = new Multicall(provider as any);
@@ -40,18 +49,20 @@ export async function getBalances(
 
   return addressesTokensCombinations.map((addressToken, index) => {
     const balance = results[index];
+    const rawBalance = balance
+      ? uint256
+          .uint256ToBN({
+            low: encode.addHexPrefix(balance[0]),
+            high: encode.addHexPrefix(balance[1]),
+          })
+          .toString()
+      : "0";
     return {
       address: addressToken.address,
       token: addressToken.token,
+      rawBalance,
       balance: formatTokenBalance(
-        balance
-          ? uint256
-              .uint256ToBN({
-                low: encode.addHexPrefix(balance[0]),
-                high: encode.addHexPrefix(balance[1]),
-              })
-              .toString()
-          : "0",
+        rawBalance,
         tokens.find((x) => x.address === addressToken.token)!.decimals
       ),
     };

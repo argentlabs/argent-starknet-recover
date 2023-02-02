@@ -9,6 +9,7 @@ export interface BaseAccount {
   version: string | null;
   privateKey?: string;
   derivationPath?: string;
+  deployImplementation?: string;
 }
 
 export interface Account extends BaseAccount {

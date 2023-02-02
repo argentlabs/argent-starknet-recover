@@ -2,11 +2,14 @@ import { Account } from "../ui/pickAccounts";
 import { detect as detectOldHashAlgo } from "./oldHashAlgo/detect";
 import { fix as fixOldHashAlgo } from "./oldHashAlgo/fix";
 import { detect as detectSigner0 } from "./signer0/detect";
+import { detect as detectDeploy } from "./deploy/detect";
 import { fix as fixSigner0 } from "./signer0/fix";
+import { fix as fixDeploy } from "./deploy/fix";
 
 interface IssuesMap {
   oldHashAlgo?: string[];
   signer0?: string[];
+  deploy?: string[];
 }
 
 export async function detectAccountIssues(
@@ -14,7 +17,8 @@ export async function detectAccountIssues(
 ): Promise<IssuesMap> {
   const oldHashAlgo = await detectOldHashAlgo(accounts);
   const signer0 = await detectSigner0(accounts);
-  return { oldHashAlgo, signer0 };
+  const deploy = await detectDeploy(accounts);
+  return { oldHashAlgo, signer0, deploy };
 }
 
 export async function fixAccountIssues(
@@ -22,11 +26,15 @@ export async function fixAccountIssues(
   network: "mainnet-alpha" | "goerli-alpha",
   issues: IssuesMap
 ): Promise<void> {
-  const { oldHashAlgo } = issues;
+  const { oldHashAlgo, signer0, deploy } = issues;
+
+  if (deploy?.length && deploy?.length > 0) {
+    await fixDeploy(accounts, network, deploy);
+  }
   if (oldHashAlgo?.length && oldHashAlgo?.length > 0) {
     await fixOldHashAlgo(accounts, network, oldHashAlgo);
   }
-  if (issues.signer0?.length && issues.signer0?.length > 0) {
-    await fixSigner0(accounts, network, issues.signer0);
+  if (signer0?.length && signer0?.length > 0) {
+    await fixSigner0(accounts, network, signer0);
   }
 }
