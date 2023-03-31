@@ -10,7 +10,7 @@ export async function showTransferAll(accounts: Account[]) {
     {
       type: "text",
       name: "toAddress",
-      message: "Enter the address to transfer to",
+      message: "Enter the receipt address",
       validate: async (value: string) => {
         try {
           await addressSchema.validate(value);

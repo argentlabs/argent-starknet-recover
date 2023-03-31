@@ -31,7 +31,7 @@ export async function extraAccount(
         {
           type: "text",
           name: "extraWalletAddresses",
-          message: "Enter wallet addresses you want to use",
+          message: "Enter the deprecated wallet",
           hint: "separate by comma",
           validate: async (value: string, prev) => {
             try {
