@@ -28,7 +28,7 @@ export async function showTransferAll(accounts: Account[]) {
     }
   );
 
-  const spinner = ora("Transfering tokens").start();
+  const spinner = ora("Transferring tokens").start();
 
   const transferResults = await Promise.allSettled(
     accounts.map(async (acc) => transferAll(acc, toAddress, spinner))
