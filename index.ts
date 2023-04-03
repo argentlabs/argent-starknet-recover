@@ -1,4 +1,7 @@
 #!/usr/bin/env npx ts-node
+import "@total-typescript/ts-reset";
+import "./fetchPolyfill";
+
 import { program } from "commander";
 import ora from "ora";
 import { Account, pickAccounts } from "./ui/pickAccounts";

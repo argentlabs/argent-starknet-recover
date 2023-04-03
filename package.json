@@ -22,6 +22,7 @@
     "outputPath": "bin"
   },
   "devDependencies": {
+    "@total-typescript/ts-reset": "^0.4.2",
     "@types/lodash.chunk": "^4.2.7",
     "@types/prompts": "^2.0.14",
     "@types/semver": "^7.3.10",
@@ -40,9 +41,9 @@
     "ora": "5",
     "prompts": "^2.4.2",
     "semver": "^7.3.7",
-    "starknet-490": "npm:starknet@4.9.0",
     "starknet": "4.1.0",
     "starknet-390": "npm:starknet@3.9.0",
+    "starknet-4220": "npm:starknet@4.22.0",
     "yup": "^1.0.0-beta.4"
   }
 }

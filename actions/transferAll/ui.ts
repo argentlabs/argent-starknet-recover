@@ -4,6 +4,30 @@ import { ValidationError } from "yup";
 import { addressSchema } from "../../schema";
 import { Account } from "../../ui/pickAccounts";
 import { transferAll } from "./core";
+import { SequencerProvider } from "starknet-4220";
+
+type PromiseFactory<T> = () => Promise<T>;
+
+type PromiseResult<T> =
+  | { status: "fulfilled"; value: T }
+  | { status: "rejected"; reason: any };
+
+async function allSettled<T>(
+  promiseFactories: PromiseFactory<T>[]
+): Promise<PromiseResult<T>[]> {
+  const results: PromiseResult<T>[] = [];
+
+  for (const promiseFactory of promiseFactories) {
+    try {
+      const value = await promiseFactory();
+      results.push({ status: "fulfilled", value });
+    } catch (reason) {
+      results.push({ status: "rejected", reason });
+    }
+  }
+
+  return results;
+}
 
 export async function showTransferAll(accounts: Account[]) {
   const { toAddress } = await prompts(
@@ -30,15 +54,31 @@ export async function showTransferAll(accounts: Account[]) {
 
   const spinner = ora("Transfering tokens").start();
 
-  const transferResults = await Promise.allSettled(
-    accounts.map(async (acc) => transferAll(acc, toAddress, spinner))
+  const transferResults = await allSettled(
+    accounts.map((acc) => () => transferAll(acc, toAddress, spinner))
   );
 
-  transferResults.forEach((result) => {
-    if (result.status === "rejected") {
-      spinner.fail(result.reason?.toString());
-    }
+  const transactions = transferResults
+    .map((result) => {
+      if (result.status === "rejected") {
+        spinner.fail(result.reason?.toString());
+        return undefined;
+      }
+      return result.value;
+    })
+    .filter((tx) => !!tx);
+
+  const provider = new SequencerProvider({
+    network: accounts[0].networkId as any,
   });
+
+  spinner.info(`Waiting for ${transactions.length} transactions`);
+  await Promise.all(
+    transactions.map((tx) => {
+      if (!tx) return;
+      return provider.waitForTransaction(tx);
+    })
+  );
 
   if (transferResults.every((result) => result.status === "fulfilled")) {
     spinner.succeed("Transfers complete");

@@ -1,7 +1,7 @@
 import {
   SequencerProvider as NewProvider,
   Account as NewAccount,
-} from "starknet-490";
+} from "starknet-4220";
 import {
   Call,
   SequencerProvider as OldProvider,
@@ -10,6 +10,7 @@ import {
 } from "starknet";
 import { BigNumber } from "ethers";
 import { Account } from "./ui/pickAccounts";
+import { lte } from "semver";
 
 export async function estimateFee(account: Account, call: Call[] | Call) {
   const calls = Array.isArray(call) ? call : [call];
@@ -42,15 +43,35 @@ export async function execute(account: Account, call: Call[] | Call) {
       "Account cant be controlled with the selected private key or seed"
     );
   }
-  try {
-    const oldProvider = new OldProvider({ network: account.networkId as any });
-    const a = new OldAccount(oldProvider, lowerCaseAddress, keyPair);
-    return await a.execute(calls);
-  } catch (e) {
-    const newProvider = new NewProvider({ network: account.networkId as any });
-    const a = new NewAccount(newProvider, lowerCaseAddress, keyPair);
-    return a.execute(calls).catch((e) => {
-      throw e;
-    });
+  if (account.version && lte(account.version, "0.2.2")) {
+    try {
+      const oldProvider = new OldProvider({
+        network: account.networkId as any,
+      });
+      const a = new OldAccount(oldProvider, lowerCaseAddress, keyPair);
+      return await a.execute(calls);
+    } catch (e) {
+      console.warn("Fallback to new provider", (e as any)?.errorCode);
+      const newProvider = new NewProvider({
+        network: account.networkId as any,
+      });
+      const a = new NewAccount(newProvider, lowerCaseAddress, keyPair);
+      return await a.execute(calls);
+    }
+  } else {
+    try {
+      const newProvider = new NewProvider({
+        network: account.networkId as any,
+      });
+      const a = new NewAccount(newProvider, lowerCaseAddress, keyPair);
+      return await a.execute(calls);
+    } catch (e) {
+      console.warn("Fallback to old provider", (e as any)?.errorCode);
+      const oldProvider = new OldProvider({
+        network: account.networkId as any,
+      });
+      const a = new OldAccount(oldProvider, lowerCaseAddress, keyPair);
+      return await a.execute(calls);
+    }
   }
 }

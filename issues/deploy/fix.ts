@@ -5,7 +5,7 @@ import {
   SequencerProvider,
   stark,
   hash,
-} from "starknet-490";
+} from "starknet-4220";
 import { PROXY_CONTRACT_CLASS_HASHES } from "../../getAccounts";
 import { getVersion } from "../../getVersion";
 import { oraLog } from "../../oraLog";
