@@ -1,5 +1,4 @@
 # Starknet Recovery CLI
-
 This is a command line tool can be used to recover funds from old Starknet accounts.
 After entering your seedphrase or private key it will scan for your accounts and potential funds and issues.
 You can then choose to fix issues and recover your funds to a new account address.
