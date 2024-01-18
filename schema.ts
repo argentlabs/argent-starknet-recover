@@ -4,6 +4,7 @@ import {
   validateAndParseAddress,
   validateChecksumAddress,
 } from "starknet";
+
 import * as yup from "yup";
 
 const isChecksumAddress = (address: string) => {

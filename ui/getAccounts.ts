@@ -6,19 +6,20 @@ import {
   getAccountsBySeedPhrase,
 } from "../getAccounts";
 import { hexValue, numberValue } from "../schema";
+import { NetworkId } from "../types";
 
 export const getAccountsAndNetwork = async (ora: Ora) => {
   const {
     seedOrPrivateKey,
-    network,
+    networkId,
   }: {
     seedOrPrivateKey: string;
-    network: "mainnet-alpha" | "goerli-alpha";
+    networkId: NetworkId;
   } = await prompts(
     [
       {
         type: "select",
-        name: "network",
+        name: "networkId",
         message: "Choose network",
         choices: [
           { title: "SN Mainnet", value: "mainnet-alpha" },
@@ -58,10 +59,10 @@ export const getAccountsAndNetwork = async (ora: Ora) => {
     );
 
     ora.start("Discovering Accounts");
-    const accounts = await getAccountsBySeedPhrase(seed, network);
+    const accounts = await getAccountsBySeedPhrase(seed, networkId);
     return {
       accounts,
-      network,
+      networkId,
       seed,
     };
   } else if (seedOrPrivateKey === "privateKey") {
@@ -94,8 +95,8 @@ export const getAccountsAndNetwork = async (ora: Ora) => {
     );
 
     ora.start("Discovering Accounts");
-    const accounts = await getAccountsByPrivateKey(privateKey, network);
-    return { accounts, network, privateKey };
+    const accounts = await getAccountsByPrivateKey(privateKey, networkId);
+    return { accounts, networkId, privateKey };
   } else {
     throw new Error("Invalid seedOrPrivateKey");
   }

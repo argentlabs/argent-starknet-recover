@@ -5,6 +5,7 @@ import { detect as detectSigner0 } from "./signer0/detect";
 import { detect as detectDeploy } from "./deploy/detect";
 import { fix as fixSigner0 } from "./signer0/fix";
 import { fix as fixDeploy } from "./deploy/fix";
+import { NetworkId } from "../types";
 
 interface IssuesMap {
   oldHashAlgo?: string[];
@@ -23,18 +24,18 @@ export async function detectAccountIssues(
 
 export async function fixAccountIssues(
   accounts: Account[],
-  network: "mainnet-alpha" | "goerli-alpha",
+  networkId: NetworkId,
   issues: IssuesMap
 ): Promise<void> {
   const { oldHashAlgo, signer0, deploy } = issues;
 
   if (deploy?.length && deploy?.length > 0) {
-    await fixDeploy(accounts, network, deploy);
+    await fixDeploy(accounts, networkId, deploy);
   }
   if (oldHashAlgo?.length && oldHashAlgo?.length > 0) {
-    await fixOldHashAlgo(accounts, network, oldHashAlgo);
+    await fixOldHashAlgo(accounts, networkId, oldHashAlgo);
   }
   if (signer0?.length && signer0?.length > 0) {
-    await fixSigner0(accounts, network, signer0);
+    await fixSigner0(accounts, networkId, signer0);
   }
 }

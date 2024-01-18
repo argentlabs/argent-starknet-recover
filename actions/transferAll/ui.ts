@@ -4,7 +4,7 @@ import { ValidationError } from "yup";
 import { addressSchema } from "../../schema";
 import { Account } from "../../ui/pickAccounts";
 import { transferAll } from "./core";
-import { SequencerProvider } from "starknet-4220";
+import { getProviderForNetworkId } from "../../getProvider";
 
 type PromiseFactory<T> = () => Promise<T>;
 
@@ -68,9 +68,7 @@ export async function showTransferAll(accounts: Account[]) {
     })
     .filter((tx) => !!tx);
 
-  const provider = new SequencerProvider({
-    network: accounts[0].networkId as any,
-  });
+  const provider = getProviderForNetworkId(accounts[0].networkId);
 
   spinner.info(`Waiting for ${transactions.length} transactions`);
   await Promise.all(

@@ -2,6 +2,7 @@ import { isString } from "lodash";
 import prompts from "prompts";
 import { ValidationError } from "yup";
 import { addressSchema } from "../schema";
+import { NetworkId } from "../types";
 
 export const askForExtraAccounts = async () => {
   // ask "Do you want to add more addresses to recover?"
@@ -17,12 +18,10 @@ export const askForExtraAccounts = async () => {
   return addMore;
 };
 
-export async function extraAccount(
-  network: "mainnet-alpha" | "goerli-alpha"
-): Promise<
+export async function extraAccount(networkId: NetworkId): Promise<
   {
     address: string;
-    networkId: string;
+    networkId: NetworkId;
   }[]
 > {
   const { extraWalletAddresses: input }: { extraWalletAddresses: string } =
@@ -69,10 +68,10 @@ export async function extraAccount(
       address: string
     ): {
       address: string;
-      networkId: string;
+      networkId: NetworkId;
     } => ({
       address,
-      networkId: network,
+      networkId,
     })
   );
 }

@@ -1,11 +1,12 @@
 import { Multicall } from "@argent/x-multicall";
-import { SequencerProvider } from "starknet";
+import { getProviderForNetworkId } from "./getProvider";
+import { NetworkId } from "./types";
 
 export async function getImplementation(
   addresses: string[],
-  network: "mainnet-alpha" | "goerli-alpha"
+  networkId: NetworkId
 ) {
-  const provider = new SequencerProvider({ network });
+  const provider = getProviderForNetworkId(networkId);
   const multicallProvider = new Multicall(provider as any);
 
   const implementationAnswers = await Promise.allSettled(
