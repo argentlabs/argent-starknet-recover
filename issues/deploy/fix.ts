@@ -2,7 +2,7 @@ import ora from "ora";
 import {
   Account as SNAccount,
   ec,
-  SequencerProvider,
+  RpcProvider,
   stark,
   hash,
 } from "starknet-4220";
@@ -10,14 +10,17 @@ import { PROXY_CONTRACT_CLASS_HASHES } from "../../getAccounts";
 import { getVersion } from "../../getVersion";
 import { oraLog } from "../../oraLog";
 import { Account } from "../../ui/pickAccounts";
+import { getRpcNodeUrlForNetworkId } from "../../getProvider";
+import { NetworkId } from "../../types";
 
 export const fix = async (
   accounts: Account[],
-  network: "mainnet-alpha" | "goerli-alpha",
+  networkId: NetworkId,
   accountsToRecover: string[]
 ): Promise<void> => {
   const spinner = ora(`Deploying accounts (this may take some time)`).start();
-  const provider = new SequencerProvider({ network });
+  const nodeUrl = getRpcNodeUrlForNetworkId(networkId);
+  const provider = new RpcProvider({ nodeUrl });
 
   for (const address of accountsToRecover) {
     const account = accounts.find((a) => a.address === address);

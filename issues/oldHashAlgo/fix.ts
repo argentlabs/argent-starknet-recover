@@ -9,13 +9,14 @@ import {
 } from "starknet-390/dist/utils/stark";
 import { oraLog } from "../../oraLog";
 import { Account } from "../../ui/pickAccounts";
+import { NetworkId } from "../../types";
 
 const LATEST_ACCOUNT_IMPLEMENTATION_ADDRESS =
   "0x01bd7ca87f139693e6681be2042194cf631c4e8d77027bf0ea9e6d55fc6018ac"; // KEEP
 
 export const fix = async (
   accounts: Account[],
-  network: "mainnet-alpha" | "goerli-alpha",
+  networkId: NetworkId,
   accountsToFix: string[]
 ): Promise<void> => {
   const spinner = ora(
@@ -34,7 +35,7 @@ export const fix = async (
           "Account cant be controlled with the selected private key or seed"
         );
       }
-      const provider = new Provider({ network });
+      const provider = new Provider({ network: networkId });
       const account = new SNAccount(provider, a.address.toLowerCase(), keyPair);
 
       const call = {

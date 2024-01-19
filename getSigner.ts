@@ -1,11 +1,9 @@
-import { SequencerProvider } from "starknet";
 import { Multicall } from "@argent/x-multicall";
+import { getProviderForNetworkId } from "./getProvider";
+import { NetworkId } from "./types";
 
-export async function getSigners(
-  addresses: string[],
-  network: "mainnet-alpha" | "goerli-alpha"
-) {
-  const provider = new SequencerProvider({ network });
+export async function getSigners(addresses: string[], networkId: NetworkId) {
+  const provider = getProviderForNetworkId(networkId);
   const multicallProvider = new Multicall(provider as any);
 
   const signerAnswers = await Promise.allSettled(

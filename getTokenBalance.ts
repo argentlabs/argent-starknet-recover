@@ -1,14 +1,16 @@
 import TOKENS from "./default-tokens.json";
-import { encode, SequencerProvider, uint256 } from "starknet";
+import { encode, uint256 } from "starknet";
 import { formatTokenBalance } from "./formatTokenBalance";
 import { Multicall } from "@argent/x-multicall";
+import { getProviderForNetworkId } from "./getProvider";
+import { NetworkId } from "./types";
 
 export async function getBalances(
   addresses: string[],
-  network: "mainnet-alpha" | "goerli-alpha",
+  networkId: NetworkId,
   tokenWhiteList: string[] = []
 ) {
-  const tokens = TOKENS.filter((token) => token.network === network).filter(
+  const tokens = TOKENS.filter((token) => token.network === networkId).filter(
     (token) => {
       if (tokenWhiteList.length) {
         return tokenWhiteList.includes(token.symbol);
@@ -18,7 +20,7 @@ export async function getBalances(
     }
   );
   const tokenAddresses = tokens.map((token) => token.address);
-  const provider = new SequencerProvider({ network });
+  const provider = getProviderForNetworkId(networkId);
   const multicallProvider = new Multicall(provider as any);
 
   const addressesTokensCombinations = tokenAddresses.flatMap((token) =>

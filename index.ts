@@ -36,25 +36,25 @@ program.parse();
 (async () => {
   const spinner = ora();
 
-  let { accounts, network, privateKey, seed } = await getAccountsAndNetwork(
+  let { accounts, networkId, privateKey, seed } = await getAccountsAndNetwork(
     spinner
   );
 
   spinner.succeed("Found " + accounts.length + " wallets");
 
   if (accounts.length === 0) {
-    accounts = await extraAccount(network);
+    accounts = await extraAccount(networkId);
   } else if (await askForExtraAccounts()) {
     accounts = unionWith(
       accounts,
-      await extraAccount(network),
+      await extraAccount(networkId),
       (a, b) => a.address === b.address
     );
   }
 
   const accountInfos = await getAccountInfos(
     accounts.map((x) => x.address),
-    network,
+    networkId,
     spinner
   );
 
@@ -101,14 +101,14 @@ program.parse();
 
   const filteredAccountWithSigner = await pickAccounts(
     accountWithSigner,
-    network
+    networkId
   );
 
   display(filteredAccountWithSigner);
 
   const issues = await detectAccountIssues(filteredAccountWithSigner);
 
-  await fixAccountIssues(accountWithSigner, network, issues);
+  await fixAccountIssues(accountWithSigner, networkId, issues);
 
   await showTransferAll(filteredAccountWithSigner);
 })().catch((e) => {

@@ -1,16 +1,18 @@
 import ora from "ora";
-import { ec, SequencerProvider } from "starknet";
+import { ec } from "starknet";
 import { compileCalldata } from "starknet/dist/utils/stark";
 import { execute } from "../../execute";
 import { oraLog } from "../../oraLog";
 import { Account, pickAccounts } from "../../ui/pickAccounts";
+import { getProviderForNetworkId } from "../../getProvider";
+import { NetworkId } from "../../types";
 
 export const fix = async (
   accounts: Account[],
-  network: "mainnet-alpha" | "goerli-alpha",
+  networkId: NetworkId,
   accountsToRecover: string[]
 ): Promise<void> => {
-  const [accountToCredit] = await pickAccounts(accounts, network, {
+  const [accountToCredit] = await pickAccounts(accounts, networkId, {
     single: true,
     accountsToRecoverMessage:
       "Select the account you want to use for the recovery",
@@ -23,7 +25,7 @@ export const fix = async (
     throw new Error("No private key for account to credit");
   }
   const spinner = ora(`Fixing 0signer issue (this may take some time)`).start();
-  const provider = new SequencerProvider({ network });
+  const provider = getProviderForNetworkId(networkId);
   const keyPair = ec.getKeyPair(privateKey);
   const starkKey = ec.getStarkKey(keyPair);
 

@@ -3,10 +3,11 @@ import { getImplementation } from "./getImplementation";
 import { getSigners } from "./getSigner";
 import { getBalances } from "./getTokenBalance";
 import { getVersion } from "./getVersion";
+import { NetworkId } from "./types";
 
 export const getAccountInfos = async (
   addresses: string[],
-  networkId: "mainnet-alpha" | "goerli-alpha",
+  networkId: NetworkId,
   oraProgress?: ora.Ora
 ) => {
   const progress = oraProgress ?? ora("Retrieving signers");

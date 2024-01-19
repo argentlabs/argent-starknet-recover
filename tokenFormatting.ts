@@ -1,10 +1,11 @@
 import TOKENS from "./default-tokens.json";
+import { NetworkId } from "./types";
 
 export const formatTokenBalance = (
   balances: { [token: string]: string },
-  network: "mainnet-alpha" | "goerli-alpha"
+  networkId: NetworkId
 ) => {
-  const tokens = TOKENS.filter((x) => x.network === network);
+  const tokens = TOKENS.filter((x) => x.network === networkId);
   return Object.fromEntries(
     Object.entries(balances).map(([token, balance]) => {
       const tokenInfo = tokens.find((t) => t.address === token);
@@ -15,9 +16,9 @@ export const formatTokenBalance = (
 
 export const formatTokenBalanceShort = (
   balances: { [token: string]: string },
-  network: "mainnet-alpha" | "goerli-alpha"
+  networkId: NetworkId
 ) => {
-  const tokens = TOKENS.filter((x) => x.network === network);
+  const tokens = TOKENS.filter((x) => x.network === networkId);
   return Object.fromEntries(
     Object.entries(balances).map(([token, balance]) => {
       const tokenInfo = tokens.find((t) => t.address === token);

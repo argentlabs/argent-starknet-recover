@@ -1,10 +1,11 @@
 import prompts from "prompts";
 import { truncateAddress, truncateHex } from "../addressFormatting";
 import { formatTokenBalanceShort } from "../tokenFormatting";
+import { NetworkId } from "../types";
 
 export interface BaseAccount {
   address: string;
-  networkId: string;
+  networkId: NetworkId;
   signer: string | null;
   version: string | null;
   privateKey?: string;
@@ -24,7 +25,7 @@ interface PickAccountsOptions {
 
 export async function pickAccounts(
   accountsToPickFrom: Account[],
-  network: "mainnet-alpha" | "goerli-alpha",
+  networkId: NetworkId,
   {
     single = false,
     accountsToRecoverMessage = "Choose accounts you would like to scan for issues",
@@ -44,7 +45,7 @@ export async function pickAccounts(
         message: accountsToRecoverMessage,
         choices: accountsToPickFrom.map((account) => {
           const balances = Object.entries(
-            formatTokenBalanceShort(account.balances, network)
+            formatTokenBalanceShort(account.balances, networkId)
           ).filter(([, balance]) => balance !== "0.0");
           return {
             title: `${truncateAddress(account.address)} (${

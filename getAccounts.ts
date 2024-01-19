@@ -1,7 +1,9 @@
 import { Wallet } from "ethers";
-import { ec, hash, number, SequencerProvider, stark } from "starknet";
+import { ec, hash, number, stark } from "starknet";
 import { getBalances } from "./getTokenBalance";
 import { getPathForIndex, getStarkPair } from "./keyDerivation";
+import { getProviderForNetworkId } from "./getProvider";
+import { NetworkId } from "./types";
 
 const CHECK_OFFSET = 10;
 
@@ -22,11 +24,11 @@ export const BASE_DERIVATION_PATHS = [
 
 async function getAccountByKeyPair(
   keyPair: ReturnType<typeof getStarkPair>,
-  network: "mainnet-alpha" | "goerli-alpha",
+  networkId: NetworkId,
   contractClassHash: string,
   accountClassHash: string
 ) {
-  const provider = new SequencerProvider({ network });
+  const provider = getProviderForNetworkId(networkId);
 
   const starkPub = ec.getStarkKey(keyPair);
 
@@ -45,13 +47,13 @@ async function getAccountByKeyPair(
   );
 
   try {
-    const ethBalance = await getBalances([address], network, ["ETH"]);
+    const ethBalance = await getBalances([address], networkId, ["ETH"]);
 
     if (ethBalance[0].rawBalance !== "0") {
       return {
         address,
         deployImplementation: accountClassHash,
-        networkId: network,
+        networkId: networkId,
         privateKey: number.toHex(number.toBN(keyPair.getPrivate().toString())),
       };
     }
@@ -61,7 +63,7 @@ async function getAccountByKeyPair(
     if (code.bytecode.length > 0) {
       return {
         address,
-        networkId: network,
+        networkId: networkId,
         deployImplementation: accountClassHash,
         privateKey: number.toHex(number.toBN(keyPair.getPrivate().toString())),
       };
@@ -73,7 +75,7 @@ async function getAccountByKeyPair(
 
 export async function getAccountsBySeedPhrase(
   seedPhrase: string,
-  network: "mainnet-alpha" | "goerli-alpha"
+  networkId: NetworkId
 ) {
   const wallet = Wallet.fromMnemonic(seedPhrase);
 
@@ -108,7 +110,7 @@ export async function getAccountsBySeedPhrase(
 
         const account = await getAccountByKeyPair(
           starkPair,
-          network,
+          networkId,
           contractClassHash,
           accountClassHash
         );
@@ -133,7 +135,7 @@ export async function getAccountsBySeedPhrase(
 
 export async function getAccountsByPrivateKey(
   privateKey: string,
-  network: "mainnet-alpha" | "goerli-alpha"
+  networkId: NetworkId
 ) {
   const proxyClassHashAndAccountClassHash2DMap =
     PROXY_CONTRACT_CLASS_HASHES.flatMap((contractHash) =>
@@ -155,7 +157,7 @@ export async function getAccountsByPrivateKey(
     async ([contractClassHash, accountClassHash]) => {
       const account = await getAccountByKeyPair(
         keyPair,
-        network,
+        networkId,
         contractClassHash,
         accountClassHash
       );
