@@ -69,7 +69,9 @@ async function getAccountByKeyPair(
       };
     }
   } catch (e) {
-    console.error(e);
+    if ((e as Error).message !== "RPC does not implement getCode function") {
+      console.error(e);
+    }
   }
 }
 

@@ -1,5 +1,6 @@
 #!/usr/bin/env npx ts-node
 import "@total-typescript/ts-reset";
+import "./dotenv";
 import "./fetchPolyfill";
 
 import { program } from "commander";
@@ -14,6 +15,7 @@ import { askForExtraAccounts, extraAccount } from "./ui/extraAccount";
 import { equalSigner, getDefaultSigners } from "./genSigners";
 import { detectAccountIssues, fixAccountIssues } from "./issues";
 import { ec } from "starknet";
+import { getRpcNodeUrlsForNetworkId } from "./getProvider";
 
 program
   .name("Argent X CLI")
@@ -35,6 +37,11 @@ program.parse();
 
 (async () => {
   const spinner = ora();
+
+  const mainnetRpcNodeUrls = getRpcNodeUrlsForNetworkId("mainnet-alpha");
+  const testnetRpcNodeUrls = getRpcNodeUrlsForNetworkId("goerli-alpha");
+  spinner.info(`Mainnet RPC: ${mainnetRpcNodeUrls.join(", ")}`);
+  spinner.info(`Testnet RPC: ${testnetRpcNodeUrls.join(", ")}`);
 
   let { accounts, networkId, privateKey, seed } = await getAccountsAndNetwork(
     spinner
