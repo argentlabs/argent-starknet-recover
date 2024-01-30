@@ -8,7 +8,7 @@
   "scripts": {
     "start": "ts-node index.ts",
     "prepare": "patch-package && tsc",
-    "build": "tsc && pkg . -C GZip"
+    "build": "tsc && [ -f .env ] && cp .env dist/ || true && pkg . --compress GZip --options \"no-warnings\""
   },
   "pkg": {
     "targets": [
@@ -19,6 +19,9 @@
       "latest-win-arm64",
       "latest-win-x64"
     ],
+    "assets": [
+      "/**/.env"
+    ],
     "outputPath": "bin"
   },
   "devDependencies": {
@@ -26,6 +29,7 @@
     "@types/lodash.chunk": "^4.2.7",
     "@types/prompts": "^2.0.14",
     "@types/semver": "^7.3.10",
+    "dotenv": "^16.3.2",
     "patch-package": "^6.4.7",
     "pkg": "^5.8.0",
     "postinstall-postinstall": "^2.1.0",
