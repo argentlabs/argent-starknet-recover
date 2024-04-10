@@ -14,8 +14,13 @@ import { showTransferAll } from "./actions/transferAll/ui";
 import { askForExtraAccounts, extraAccount } from "./ui/extraAccount";
 import { equalSigner, getDefaultSigners } from "./genSigners";
 import { detectAccountIssues, fixAccountIssues } from "./issues";
-import { ec } from "starknet";
+import { ec } from "starknet-410";
 import { getRpcNodeUrlsForNetworkId } from "./getProvider";
+
+/** Helps with debugging payloads containing BigInt */
+(BigInt.prototype as any).toJSON = function () {
+  return `${this.toString()}n`;
+};
 
 program
   .name("Argent X CLI")

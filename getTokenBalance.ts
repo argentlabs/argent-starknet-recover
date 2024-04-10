@@ -1,8 +1,7 @@
 import TOKENS from "./default-tokens.json";
-import { encode, uint256 } from "starknet";
+import { encode, uint256 } from "starknet-410";
 import { formatTokenBalance } from "./formatTokenBalance";
-import { Multicall } from "@argent/x-multicall";
-import { getProviderForNetworkId } from "./getProvider";
+import { getRpcBatchProviderForNetworkId } from "./getProvider";
 import { NetworkId } from "./types";
 
 export async function getBalances(
@@ -20,8 +19,7 @@ export async function getBalances(
     }
   );
   const tokenAddresses = tokens.map((token) => token.address);
-  const provider = getProviderForNetworkId(networkId);
-  const multicallProvider = new Multicall(provider as any);
+  const multicall = getRpcBatchProviderForNetworkId(networkId);
 
   const addressesTokensCombinations = tokenAddresses.flatMap((token) =>
     addresses.map((address) => ({ address, token }))
@@ -29,7 +27,7 @@ export async function getBalances(
 
   const results = await Promise.allSettled(
     addressesTokensCombinations.map(({ address, token }) =>
-      multicallProvider.call({
+      multicall.callContract({
         contractAddress: token,
         entrypoint: "balanceOf",
         calldata: [address],
@@ -37,7 +35,7 @@ export async function getBalances(
     )
   ).then((results) =>
     results.map((result) => {
-      if (result.status === "fulfilled") {
+      if (result.status === "fulfilled" && result.value !== undefined) {
         return result.value;
       } else {
         return null;
@@ -46,7 +44,7 @@ export async function getBalances(
   );
 
   if (addressesTokensCombinations.length !== results.length) {
-    throw new Error("Something went wrong");
+    throw new Error("Unable to determine token balances");
   }
 
   return addressesTokensCombinations.map((addressToken, index) => {

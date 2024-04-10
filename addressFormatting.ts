@@ -1,4 +1,4 @@
-import { encode } from "starknet";
+import { encode } from "starknet-410";
 
 export const formatAddress = (address: string) =>
   encode.addHexPrefix(encode.removeHexPrefix(address).padStart(64, "0"));

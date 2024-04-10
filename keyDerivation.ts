@@ -1,6 +1,6 @@
 import { BigNumber, BigNumberish, utils } from "ethers";
 import { isNumber } from "lodash";
-import { KeyPair, ec, number } from "starknet";
+import { KeyPair, ec, number } from "starknet-410";
 
 export function getStarkPair<T extends number | string>(
   indexOrPath: T,

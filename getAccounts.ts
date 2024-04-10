@@ -1,8 +1,8 @@
 import { Wallet } from "ethers";
-import { ec, hash, number, stark } from "starknet";
+import { ec, hash, number, stark } from "starknet-410";
 import { getBalances } from "./getTokenBalance";
 import { getPathForIndex, getStarkPair } from "./keyDerivation";
-import { getProviderForNetworkId } from "./getProvider";
+import { getProvider4220ForNetworkId } from "./getProvider";
 import { NetworkId } from "./types";
 
 const CHECK_OFFSET = 10;
@@ -17,6 +17,12 @@ const ARGENT_ACCOUNT_CONTRACT_CLASS_HASHES = [
   "0x33434ad846cdd5f23eb73ff09fe6fddd568284a0fb7d1be20ee482f044dabe2",
 ];
 
+const ARGENT_ACCOUNT_CONTRACT_CLASS_HASHES_CAIRO_1 = [
+  "0x29927c8af6bccf3f6fda035981e765a7bdbf18a2dc0d630494f8758aa908e2b",
+  "0x02fadbf77a721b94bdcc3032d86a8921661717fa55145bccf88160ee2a5efcd1",
+  "0x1a736d6ed154502257f02b1ccdf4d9d1089f80811cd6acad48e6b6a9d1f2003",
+];
+
 export const BASE_DERIVATION_PATHS = [
   "m/44'/9004'/0'/0",
   "m/2645'/1195502025'/1148870696'/0'/0'",
@@ -28,7 +34,7 @@ async function getAccountByKeyPair(
   contractClassHash: string,
   accountClassHash: string
 ) {
-  const provider = getProviderForNetworkId(networkId);
+  const provider4220 = getProvider4220ForNetworkId(networkId);
 
   const starkPub = ec.getStarkKey(keyPair);
 
@@ -58,7 +64,7 @@ async function getAccountByKeyPair(
       };
     }
 
-    const code = await provider.getCode(address);
+    const code = await provider4220.getCode(address);
 
     if (code.bytecode.length > 0) {
       return {
@@ -89,6 +95,16 @@ export async function getAccountsBySeedPhrase(
         )
       )
   );
+
+  BASE_DERIVATION_PATHS.forEach((dp) => {
+    ARGENT_ACCOUNT_CONTRACT_CLASS_HASHES_CAIRO_1.forEach((accountClassHash) => {
+      proxyClassHashAndAccountClassHash2DMap.push([
+        accountClassHash,
+        accountClassHash,
+        dp,
+      ]);
+    });
+  });
 
   const accounts: {
     address: string;

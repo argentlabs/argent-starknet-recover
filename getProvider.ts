@@ -1,5 +1,7 @@
-import { RpcProvider } from "starknet-4220";
+import { RpcProvider as RpcProviderLatest } from "starknet";
+import { RpcProvider as RpcProvider4220 } from "starknet-4220";
 import { NetworkId } from "./types";
+import { RpcBatchProvider } from "@argent/x-multicall";
 
 export const argentCliHeaders = {
   "argent-version": process.env.VERSION || "Unknown version",
@@ -35,10 +37,29 @@ export const getRpcNodeUrlForNetworkId = (networkId: NetworkId) => {
   return nodeUrls[randomIndex];
 };
 
-export const getProviderForNetworkId = (networkId: NetworkId) => {
+export const getProvider4220ForNetworkId = (networkId: NetworkId) => {
   const nodeUrl = getRpcNodeUrlForNetworkId(networkId);
-  return new RpcProvider({
+  return new RpcProvider4220({
     nodeUrl,
     headers: argentCliHeaders,
   });
+};
+
+export const getProviderForNetworkId = (networkId: NetworkId) => {
+  const nodeUrl = getRpcNodeUrlForNetworkId(networkId);
+  return new RpcProviderLatest({
+    nodeUrl,
+    headers: argentCliHeaders,
+  });
+};
+
+export const getRpcBatchProviderForNetworkId = (networkId: NetworkId) => {
+  const nodeUrl = getRpcNodeUrlForNetworkId(networkId);
+  const multicall = new RpcBatchProvider({
+    nodeUrl,
+    batchInterval: 500,
+    maxBatchSize: 10,
+    headers: argentCliHeaders,
+  });
+  return multicall;
 };
