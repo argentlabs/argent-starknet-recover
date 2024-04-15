@@ -1,6 +1,6 @@
 import ora from "ora";
-import { ec } from "starknet";
-import { compileCalldata } from "starknet/dist/utils/stark";
+import { ec } from "starknet-410";
+import { compileCalldata } from "starknet-410/dist/utils/stark";
 import { execute } from "../../execute";
 import { oraLog } from "../../oraLog";
 import { Account, pickAccounts } from "../../ui/pickAccounts";
@@ -38,6 +38,7 @@ export const fix = async (
         guardian: "0",
       }),
     });
+
     oraLog(spinner, `Transaction ${transaction.transaction_hash} created`);
     await provider.waitForTransaction(transaction.transaction_hash);
 

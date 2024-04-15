@@ -1,25 +1,34 @@
-import { Multicall } from "@argent/x-multicall";
-import { getProviderForNetworkId } from "./getProvider";
+import { getRpcBatchProviderForNetworkId } from "./getProvider";
 import { NetworkId } from "./types";
 
 export async function getSigners(addresses: string[], networkId: NetworkId) {
-  const provider = getProviderForNetworkId(networkId);
-  const multicallProvider = new Multicall(provider as any);
+  const multicall = getRpcBatchProviderForNetworkId(networkId);
 
   const signerAnswers = await Promise.allSettled(
-    addresses.map((address) =>
-      multicallProvider
-        .call({
-          contractAddress: address,
-          entrypoint: "getSigner",
-        })
-        .catch(() =>
-          multicallProvider.call({
-            contractAddress: address,
-            entrypoint: "get_signer",
-          })
-        )
-    )
+    addresses.map(async (address) => {
+      const getSigner = await multicall.callContract({
+        contractAddress: address,
+        entrypoint: "getSigner",
+      });
+      if (getSigner !== undefined) {
+        return getSigner;
+      }
+      const get_signer = await multicall.callContract({
+        contractAddress: address,
+        entrypoint: "get_signer",
+      });
+      if (get_signer !== undefined) {
+        return get_signer;
+      }
+      const get_owner = await multicall.callContract({
+        contractAddress: address,
+        entrypoint: "get_owner",
+      });
+      if (get_owner !== undefined) {
+        return get_owner;
+      }
+      throw new Error("Unable to get signer on chain");
+    })
   );
 
   const signers = signerAnswers

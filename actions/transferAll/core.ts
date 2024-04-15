@@ -1,6 +1,6 @@
-import { BigNumber, utils } from "ethers";
-import { number, uint256 } from "starknet";
-import { compileCalldata } from "starknet/dist/utils/stark";
+import { utils } from "ethers";
+import { num, CallData } from "starknet";
+import { number, uint256 } from "starknet-410";
 import { Account } from "../../ui/pickAccounts";
 import TOKENS from "../../default-tokens.json";
 import { Ora } from "ora";
@@ -22,24 +22,20 @@ export async function transferAll(acc: Account, newAddress: string, ora: Ora) {
       return {
         contractAddress: token,
         entrypoint: "transfer",
-        calldata: compileCalldata({
+        calldata: CallData.compile({
           to: newAddress.toLowerCase(),
-          value: {
-            type: "struct",
-            ...uint256.bnToUint256(
-              number.toBN(
-                utils
-                  .parseUnits(balance, tokenDetails?.decimals || 18)
-                  .toString()
-              )
-            ),
-          },
+          value: uint256.bnToUint256(
+            number.toBN(
+              utils.parseUnits(balance, tokenDetails?.decimals || 18).toString()
+            )
+          ),
         }),
       };
     });
 
   if (calls.length) {
-    const { suggestedMaxFee } = await estimateFee(acc, calls);
+    const result = await estimateFee(acc, calls);
+    const suggestedMaxFee = result.suggestedMaxFee || result.overall_fee;
 
     const callsWithFee = calls
       .map((c) => {
@@ -48,7 +44,7 @@ export async function transferAll(acc: Account, newAddress: string, ora: Ora) {
           const balance = acc.balances[c.contractAddress];
           const amount = utils
             .parseUnits(balance, tokenDetails?.decimals ?? 18)
-            .sub(number.toHex(suggestedMaxFee));
+            .sub(num.toHex(suggestedMaxFee));
 
           if (amount.lte(0)) {
             ora.info(
@@ -61,12 +57,9 @@ export async function transferAll(acc: Account, newAddress: string, ora: Ora) {
 
           return {
             ...c,
-            calldata: compileCalldata({
+            calldata: CallData.compile({
               to: newAddress.toLowerCase(),
-              value: {
-                type: "struct",
-                ...uint256.bnToUint256(number.toBN(amount.toString())),
-              },
+              value: uint256.bnToUint256(number.toBN(amount.toString())),
             }),
           };
         }

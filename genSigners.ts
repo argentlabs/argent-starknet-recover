@@ -1,5 +1,5 @@
 import { BigNumber, Wallet } from "ethers";
-import { ec, number } from "starknet";
+import { ec, number } from "starknet-410";
 import { BASE_DERIVATION_PATHS } from "./getAccounts";
 import { getPathForIndex, getStarkPair } from "./keyDerivation";
 

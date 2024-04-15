@@ -1,17 +1,19 @@
-import {
-  RpcProvider as NewRpcProvider,
-  Account as NewAccount,
-} from "starknet-4220";
+import { Account as LatestAccount } from "starknet";
+import { Account as Account4220 } from "starknet-4220";
 import {
   Call,
   RpcProvider as OldRpcProvider,
   Account as OldAccount,
   ec,
-} from "starknet";
+} from "starknet-410";
 import { BigNumber } from "ethers";
 import { Account } from "./ui/pickAccounts";
 import { lte } from "semver";
-import { getRpcNodeUrlForNetworkId } from "./getProvider";
+import {
+  getProvider4220ForNetworkId,
+  getProviderForNetworkId,
+  getRpcNodeUrlForNetworkId,
+} from "./getProvider";
 
 export async function estimateFee(account: Account, call: Call[] | Call) {
   const calls = Array.isArray(call) ? call : [call];
@@ -24,15 +26,43 @@ export async function estimateFee(account: Account, call: Call[] | Call) {
     );
   }
   const nodeUrl = getRpcNodeUrlForNetworkId(account.networkId);
+
   try {
-    const oldRpcProvider = new OldRpcProvider({ nodeUrl });
-    const a = new OldAccount(oldRpcProvider, lowerCaseAddress, keyPair);
+    if (!account.privateKey) {
+      throw new Error("Account private key is missing");
+    }
+    const provider = getProviderForNetworkId(account.networkId);
+    const a = new LatestAccount(provider, lowerCaseAddress, account.privateKey);
     return await a.estimateFee(calls);
-  } catch {
-    const newRpcProvider = new NewRpcProvider({ nodeUrl });
-    const a = new NewAccount(newRpcProvider, lowerCaseAddress, keyPair);
-    return a.estimateFee(calls);
+  } catch (e) {
+    console.warn(
+      `Fallback to old provider - estimateFee error ${e}`,
+      (e as any)?.errorCode
+    );
   }
+
+  try {
+    const provider = getProvider4220ForNetworkId(account.networkId);
+    const a = new Account4220(provider, lowerCaseAddress, keyPair);
+    return a.estimateFee(calls);
+  } catch (e) {
+    console.warn(
+      `Fallback to old provider - estimateFee error ${e}`,
+      (e as any)?.errorCode
+    );
+  }
+
+  try {
+    const provider = new OldRpcProvider({ nodeUrl });
+    const a = new OldAccount(provider, lowerCaseAddress, keyPair);
+    return await a.estimateFee(calls);
+  } catch (e) {
+    console.warn(
+      `Oldest provider failed - estimateFee error ${e}`,
+      (e as any)?.errorCode
+    );
+  }
+  throw new Error("Estimate fee failed");
 }
 
 export async function execute(account: Account, call: Call[] | Call) {
@@ -45,28 +75,69 @@ export async function execute(account: Account, call: Call[] | Call) {
       "Account cant be controlled with the selected private key or seed"
     );
   }
+
   const nodeUrl = getRpcNodeUrlForNetworkId(account.networkId);
   if (account.version && lte(account.version, "0.2.2")) {
     try {
-      const oldRpcProvider = new OldRpcProvider({ nodeUrl });
-      const a = new OldAccount(oldRpcProvider, lowerCaseAddress, keyPair);
+      const provider = new OldRpcProvider({ nodeUrl });
+      const a = new OldAccount(provider, lowerCaseAddress, keyPair);
       return await a.execute(calls);
     } catch (e) {
-      console.warn("Fallback to new provider", (e as any)?.errorCode);
-      const newRpcProvider = new NewRpcProvider({ nodeUrl });
-      const a = new NewAccount(newRpcProvider, lowerCaseAddress, keyPair);
+      console.warn(
+        `Fallback to old provider - estimateFee error ${e}`,
+        (e as any)?.errorCode
+      );
+    }
+    try {
+      const provider = getProvider4220ForNetworkId(account.networkId);
+      const a = new Account4220(provider, lowerCaseAddress, keyPair);
       return await a.execute(calls);
+    } catch (e) {
+      console.warn(
+        `Oldest provider failed - execute error ${e}`,
+        (e as any)?.errorCode
+      );
     }
   } else {
     try {
-      const newRpcProvider = new NewRpcProvider({ nodeUrl });
-      const a = new NewAccount(newRpcProvider, lowerCaseAddress, keyPair);
+      if (!account.privateKey) {
+        throw new Error("Account private key is missing");
+      }
+      const provider = getProviderForNetworkId(account.networkId);
+      const a = new LatestAccount(
+        provider,
+        lowerCaseAddress,
+        account.privateKey
+      );
       return await a.execute(calls);
     } catch (e) {
-      console.warn("Fallback to old provider", (e as any)?.errorCode);
-      const oldRpcProvider = new OldRpcProvider({ nodeUrl });
-      const a = new OldAccount(oldRpcProvider, lowerCaseAddress, keyPair);
+      console.warn(
+        `Fallback to older provider - execute error ${e}`,
+        (e as any)?.errorCode
+      );
+    }
+
+    try {
+      const provider = getProvider4220ForNetworkId(account.networkId);
+      const a = new Account4220(provider, lowerCaseAddress, keyPair);
       return await a.execute(calls);
+    } catch (e) {
+      console.warn(
+        `Fallback to older provider - execute error ${e}`,
+        (e as any)?.errorCode
+      );
+    }
+
+    try {
+      const provider = new OldRpcProvider({ nodeUrl });
+      const a = new OldAccount(provider, lowerCaseAddress, keyPair);
+      return await a.execute(calls);
+    } catch (e) {
+      console.warn(
+        `Oldest provider failed - execute error ${e}`,
+        (e as any)?.errorCode
+      );
     }
   }
+  throw new Error("Execute transation failed");
 }

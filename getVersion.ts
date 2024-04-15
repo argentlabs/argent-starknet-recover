@@ -1,31 +1,33 @@
-import { Multicall } from "@argent/x-multicall";
-import { shortString } from "starknet";
+import { shortString } from "starknet-410";
 import { NetworkId } from "./types";
-import { getProviderForNetworkId } from "./getProvider";
+import { getRpcBatchProviderForNetworkId } from "./getProvider";
 
 export async function getVersion(addresses: string[], networkId: NetworkId) {
-  const provider = getProviderForNetworkId(networkId);
-  const multicallContract = new Multicall(provider as any);
+  const multicall = getRpcBatchProviderForNetworkId(networkId);
 
   const versionAnswers = await Promise.allSettled(
-    addresses.map((address) =>
-      multicallContract
-        .call({
-          contractAddress: address,
-          entrypoint: "getVersion",
-        })
-        .catch(() =>
-          multicallContract.call({
-            contractAddress: address,
-            entrypoint: "get_version",
-          })
-        )
-    )
+    addresses.map(async (address) => {
+      const getVersion = await multicall.callContract({
+        contractAddress: address,
+        entrypoint: "getVersion",
+      });
+      if (getVersion !== undefined) {
+        return getVersion;
+      }
+      const get_version = await multicall.callContract({
+        contractAddress: address,
+        entrypoint: "get_version",
+      });
+      if (get_version !== undefined) {
+        return get_version;
+      }
+      throw new Error("Unable to get version on chain");
+    })
   );
 
   const versions = versionAnswers
     .map((answer) => {
-      if (answer.status === "fulfilled") {
+      if (answer.status === "fulfilled" && answer.value !== undefined) {
         return answer.value;
       } else {
         return null;

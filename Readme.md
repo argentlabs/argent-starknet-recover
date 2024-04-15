@@ -9,6 +9,16 @@ You can then choose to fix issues and recover your funds to a new account addres
 It is simplest to download the latest release from the [releases page](https://github.com/argentlabs/argent-starknet-recover/releases).
 After downloading the binary matching your machine you can run it inside a terminal.
 
-If you have Node installed you can also clone this repo and run `yarn && yarn start` to run the CLI tool.
+If you have `node`, `nvm` and `yarn` installed you can also clone this repo and run the following:
 
-**Use at your own risks**
+```bash
+$ nvm use
+$ yarn
+$ yarn start
+```
+
+**Use at your own risk**
+
+## Debugging with VSCode
+
+You can use the Run and Debug feature to debug with VSCode - good luck!

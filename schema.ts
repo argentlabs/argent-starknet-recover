@@ -3,7 +3,7 @@ import {
   number,
   validateAndParseAddress,
   validateChecksumAddress,
-} from "starknet";
+} from "starknet-410";
 
 import * as yup from "yup";
 
